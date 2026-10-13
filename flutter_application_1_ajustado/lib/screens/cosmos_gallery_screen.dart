@@ -23,21 +23,37 @@ class CosmosGalleryScreen extends StatefulWidget {
       _CosmosGalleryScreenState();
 }
 
-class _CosmosGalleryScreenState
-    extends State<CosmosGalleryScreen> {
-  static const Color verde =
-      Color(0xFFC6FF00);
+class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
+  static const Color verde = Color(0xFFC6FF00);
+  static const Color verdeClaro = Color(0xFF536D00);
 
-  final NasaApiService api =
-      NasaApiService();
-
-  final TextEditingController buscaController =
-      TextEditingController();
+  final NasaApiService api = NasaApiService();
+  final TextEditingController buscaController = TextEditingController();
 
   List<Photo> fotos = [];
 
   bool carregando = true;
   String mensagemErro = '';
+
+  bool get escuro =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  Color get fundo =>
+      Theme.of(context).scaffoldBackgroundColor;
+
+  Color get textoPrincipal =>
+      escuro ? Colors.white : const Color(0xFF171A16);
+
+  Color get textoSecundario =>
+      escuro ? Colors.white54 : const Color(0xFF60665D);
+
+  Color get textoFraco =>
+      escuro ? Colors.white38 : const Color(0xFF777D73);
+
+  Color get linha =>
+      escuro ? const Color(0xFF202328) : const Color(0xFFD9DED5);
+
+  Color get corDestaque => escuro ? verde : verdeClaro;
 
   @override
   void initState() {
@@ -51,46 +67,37 @@ class _CosmosGalleryScreenState
     super.dispose();
   }
 
-  Future<void> carregarFotos(
-    String consulta,
-  ) async {
+  Future<void> carregarFotos(String consulta) async {
     setState(() {
       carregando = true;
       mensagemErro = '';
     });
 
     try {
-      final resultado =
-          await api.buscarImagens(
+      final resultado = await api.buscarImagens(
         consulta: consulta,
         pageSize: 30,
       );
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       setState(() {
         fotos = resultado;
         carregando = false;
       });
     } catch (_) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       setState(() {
         fotos = [];
         carregando = false;
-        mensagemErro =
-            'Não foi possível carregar as imagens.';
+        mensagemErro = 'Não foi possível carregar as imagens.';
       });
     }
   }
 
   void pesquisar() {
-    final texto =
-        buscaController.text.trim();
+    final texto = buscaController.text.trim();
 
     if (texto.isEmpty) {
       carregarFotos(widget.consulta);
@@ -104,8 +111,7 @@ class _CosmosGalleryScreenState
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            DetalheScreen(foto: foto),
+        builder: (context) => DetalheScreen(foto: foto),
       ),
     );
   }
@@ -113,57 +119,44 @@ class _CosmosGalleryScreenState
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF08090B),
+      color: fundo,
+      width: double.infinity,
       child: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            42,
-            35,
-            42,
-            45,
-          ),
+          padding: const EdgeInsets.fromLTRB(42, 35, 42, 45),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // CABEÇALHO
               Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             Container(
                               width: 18,
                               height: 1,
-                              color: verde,
+                              color: corDestaque,
                             ),
-                            const SizedBox(
-                                width: 8),
+                            const SizedBox(width: 8),
                             Text(
                               'UM UNIVERSO PARA EXPLORAR',
-                              style:
-                                  GoogleFonts.inter(
-                                color: verde,
+                              style: GoogleFonts.inter(
+                                color: corDestaque,
                                 fontSize: 7,
-                                fontWeight:
-                                    FontWeight.w700,
-                                letterSpacing:
-                                    1.1,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.1,
                               ),
                             ),
-                            const SizedBox(
-                                width: 8),
+                            const SizedBox(width: 8),
                             Text(
                               '/ 002',
-                              style:
-                                  GoogleFonts.inter(
-                                color:
-                                    Colors.white24,
+                              style: GoogleFonts.inter(
+                                color: textoFraco,
                                 fontSize: 7,
                               ),
                             ),
@@ -172,24 +165,17 @@ class _CosmosGalleryScreenState
                         const SizedBox(height: 14),
                         RichText(
                           text: TextSpan(
-                            style:
-                                GoogleFonts.inter(
-                              color: Colors.white,
+                            style: GoogleFonts.inter(
+                              color: textoPrincipal,
                               fontSize: 38,
-                              fontWeight:
-                                  FontWeight.w300,
+                              fontWeight: FontWeight.w300,
                               letterSpacing: -1.8,
                             ),
-                            children: const [
-                              TextSpan(
-                                text:
-                                    'Explore o ',
-                              ),
+                            children: [
+                              const TextSpan(text: 'Explore o '),
                               TextSpan(
                                 text: 'infinito.',
-                                style: TextStyle(
-                                  color: verde,
-                                ),
+                                style: TextStyle(color: corDestaque),
                               ),
                             ],
                           ),
@@ -197,36 +183,30 @@ class _CosmosGalleryScreenState
                         const SizedBox(height: 7),
                         Text(
                           'Viaje pelo acervo visual da NASA, uma descoberta de cada vez.',
-                          style:
-                              GoogleFonts.inter(
-                            color:
-                                Colors.white54,
+                          style: GoogleFonts.inter(
+                            color: textoSecundario,
                             fontSize: 9,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 30),
+                  const SizedBox(width: 20),
                   Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.all_inclusive,
-                            color: verde,
+                            color: corDestaque,
                             size: 17,
                           ),
-                          const SizedBox(
-                              width: 5),
+                          const SizedBox(width: 5),
                           Text(
                             '${fotos.length.toString().padLeft(2, '0')} / OBJETOS',
-                            style:
-                                GoogleFonts.inter(
-                              color:
-                                  Colors.white38,
+                            style: GoogleFonts.inter(
+                              color: textoFraco,
                               fontSize: 7,
                             ),
                           ),
@@ -239,36 +219,54 @@ class _CosmosGalleryScreenState
 
               const SizedBox(height: 24),
 
-              Row(
-                children: [
-                  _aba('Descobertas', 1),
-                  _aba('Galáxias', 3),
-                  _aba('Marte', 4),
-                  _aba('Terra', 5),
-                  _aba('Lua', 6),
-                  const Spacer(),
-                  _campoBusca(),
-                ],
+              // ABAS E BUSCA
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final bool compacto = constraints.maxWidth < 750;
+
+                  final abas = Wrap(
+                    spacing: 0,
+                    runSpacing: 10,
+                    children: [
+                      _aba('Descobertas', 1),
+                      _aba('Galáxias', 3),
+                      _aba('Marte', 4),
+                      _aba('Terra', 5),
+                      _aba('Lua', 6),
+                    ],
+                  );
+
+                  if (compacto) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        abas,
+                        const SizedBox(height: 16),
+                        _campoBusca(),
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(child: abas),
+                      const SizedBox(width: 15),
+                      _campoBusca(),
+                    ],
+                  );
+                },
               ),
 
               const SizedBox(height: 14),
-
-              Container(
-                height: 1,
-                color:
-                    const Color(0xFF202328),
-              ),
-
+              Container(height: 1, color: linha),
               const SizedBox(height: 14),
 
+              // GALERIA
               if (carregando)
                 const SizedBox(
                   height: 420,
                   child: Center(
-                    child:
-                        CircularProgressIndicator(
-                      color: verde,
-                    ),
+                    child: CircularProgressIndicator(color: verde),
                   ),
                 )
               else if (mensagemErro.isNotEmpty)
@@ -276,26 +274,32 @@ class _CosmosGalleryScreenState
               else if (fotos.isEmpty)
                 _vazio()
               else
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics:
-                      const NeverScrollableScrollPhysics(),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 28,
-                    childAspectRatio: 0.92,
-                  ),
-                  itemCount: fotos.length,
-                  itemBuilder:
-                      (context, index) {
-                    return PhotoCard(
-                      foto: fotos[index],
-                      compact: true,
-                      onTap: () {
-                        abrirDetalhes(
-                          fotos[index],
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    int colunas = 3;
+
+                    if (constraints.maxWidth < 550) {
+                      colunas = 1;
+                    } else if (constraints.maxWidth < 850) {
+                      colunas = 2;
+                    }
+
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: colunas,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 28,
+                        childAspectRatio: colunas == 1 ? 1.15 : 0.92,
+                      ),
+                      itemCount: fotos.length,
+                      itemBuilder: (context, index) {
+                        return PhotoCard(
+                          foto: fotos[index],
+                          compact: true,
+                          onTap: () => abrirDetalhes(fotos[index]),
                         );
                       },
                     );
@@ -303,45 +307,48 @@ class _CosmosGalleryScreenState
                 ),
 
               const SizedBox(height: 50),
-
-              Container(
-                height: 1,
-                color:
-                    const Color(0xFF202328),
-              ),
-
+              Container(height: 1, color: linha),
               const SizedBox(height: 28),
 
-              Row(
+              // RODAPÉ
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                runSpacing: 18,
+                spacing: 24,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
                     'órbita.',
-                    style:
-                        GoogleFonts.inter(
-                      color: Colors.white,
+                    style: GoogleFonts.inter(
+                      color: textoPrincipal,
                       fontSize: 18,
-                      fontWeight:
-                          FontWeight.w700,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const Spacer(),
                   Text(
                     'Uma forma de se perder e se encontrar no universo.\n'
                     'Imagens e dados: NASA Open APIs.',
-                    style:
-                        GoogleFonts.inter(
-                      color: Colors.white30,
+                    style: GoogleFonts.inter(
+                      color: textoSecundario,
                       fontSize: 7,
                       height: 1.5,
                     ),
                   ),
-                  const SizedBox(width: 70),
-                  Text(
-                    'VOLTAR AO TOPO ↑',
-                    style:
-                        GoogleFonts.inter(
-                      color: Colors.white38,
-                      fontSize: 7,
+                  TextButton(
+                    onPressed: () {
+                      Scrollable.ensureVisible(
+                        context,
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeInOut,
+                        alignment: 0,
+                      );
+                    },
+                    child: Text(
+                      'VOLTAR AO TOPO ↑',
+                      style: GoogleFonts.inter(
+                        color: textoSecundario,
+                        fontSize: 7,
+                      ),
                     ),
                   ),
                 ],
@@ -353,32 +360,22 @@ class _CosmosGalleryScreenState
     );
   }
 
-  Widget _aba(
-    String texto,
-    int indice,
-  ) {
-    final bool selecionada =
-        widget.paginaSelecionada == indice;
+  // ABAS
+  Widget _aba(String texto, int indice) {
+    final bool selecionada = widget.paginaSelecionada == indice;
 
     return GestureDetector(
       onTap: widget.onPaginaSelecionada == null
           ? null
-          : () {
-              widget.onPaginaSelecionada!(
-                indice,
-              );
-            },
+          : () => widget.onPaginaSelecionada!(indice),
       child: Container(
-        margin: const EdgeInsets.only(
-          right: 22,
-        ),
-        padding:
-            const EdgeInsets.only(bottom: 9),
+        margin: const EdgeInsets.only(right: 22),
+        padding: const EdgeInsets.only(bottom: 9),
         decoration: selecionada
-            ? const BoxDecoration(
+            ? BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: verde,
+                    color: corDestaque,
                     width: 2,
                   ),
                 ),
@@ -387,9 +384,7 @@ class _CosmosGalleryScreenState
         child: Text(
           texto,
           style: GoogleFonts.inter(
-            color: selecionada
-                ? Colors.white
-                : Colors.white38,
+            color: selecionada ? textoPrincipal : textoFraco,
             fontSize: 8,
             fontWeight: selecionada
                 ? FontWeight.w600
@@ -400,63 +395,56 @@ class _CosmosGalleryScreenState
     );
   }
 
+  // CAMPO DE BUSCA
   Widget _campoBusca() {
     return SizedBox(
-      width: 180,
-      height: 30,
+      width: 220,
+      height: 38,
       child: TextField(
         controller: buscaController,
         onSubmitted: (_) => pesquisar(),
         style: GoogleFonts.inter(
-          color: Colors.white70,
-          fontSize: 8,
+          color: textoPrincipal,
+          fontSize: 10,
         ),
         decoration: InputDecoration(
           hintText: 'Buscar no universo...',
           hintStyle: GoogleFonts.inter(
-            color: Colors.white30,
-            fontSize: 8,
+            color: textoFraco,
+            fontSize: 9,
           ),
-          prefixIcon: const Icon(
+          prefixIcon: Icon(
             Icons.search,
-            size: 13,
-            color: Colors.white38,
+            size: 15,
+            color: textoSecundario,
           ),
           suffixIcon: IconButton(
             padding: EdgeInsets.zero,
             tooltip: 'Pesquisar',
             onPressed: pesquisar,
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_forward,
-              color: verde,
-              size: 13,
+              color: corDestaque,
+              size: 15,
             ),
           ),
-          contentPadding:
-              const EdgeInsets.symmetric(
-            horizontal: 8,
+          filled: true,
+          fillColor: escuro ? const Color(0xFF101419) : Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: linha),
+            borderRadius: BorderRadius.circular(4),
           ),
-          enabledBorder:
-              OutlineInputBorder(
-            borderSide: const BorderSide(
-              color: Color(0xFF30343A),
-            ),
-            borderRadius:
-                BorderRadius.circular(4),
-          ),
-          focusedBorder:
-              OutlineInputBorder(
-            borderSide: const BorderSide(
-              color: verde,
-            ),
-            borderRadius:
-                BorderRadius.circular(4),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: corDestaque),
+            borderRadius: BorderRadius.circular(4),
           ),
         ),
       ),
     );
   }
 
+  // ERRO
   Widget _erro() {
     return SizedBox(
       height: 420,
@@ -464,30 +452,25 @@ class _CosmosGalleryScreenState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline,
-              color: Colors.white38,
+              color: textoSecundario,
               size: 38,
             ),
             const SizedBox(height: 12),
             Text(
               mensagemErro,
               style: GoogleFonts.inter(
-                color: Colors.white54,
+                color: textoSecundario,
                 fontSize: 10,
               ),
             ),
             const SizedBox(height: 15),
             TextButton(
-              onPressed: () =>
-                  carregarFotos(
-                widget.consulta,
-              ),
-              child: const Text(
+              onPressed: () => carregarFotos(widget.consulta),
+              child: Text(
                 'Tentar novamente',
-                style: TextStyle(
-                  color: verde,
-                ),
+                style: TextStyle(color: corDestaque),
               ),
             ),
           ],
@@ -496,6 +479,7 @@ class _CosmosGalleryScreenState
     );
   }
 
+  // GALERIA VAZIA
   Widget _vazio() {
     return SizedBox(
       height: 420,
@@ -503,7 +487,7 @@ class _CosmosGalleryScreenState
         child: Text(
           'Nenhuma imagem encontrada.',
           style: GoogleFonts.inter(
-            color: Colors.white38,
+            color: textoSecundario,
             fontSize: 11,
           ),
         ),

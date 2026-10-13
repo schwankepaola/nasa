@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -15,26 +14,66 @@ void main() {
   runApp(const OrbitaApp());
 }
 
-class OrbitaApp extends StatelessWidget {
+class OrbitaApp extends StatefulWidget {
   const OrbitaApp({super.key});
 
   @override
+  State<OrbitaApp> createState() => _OrbitaAppState();
+}
+
+class _OrbitaAppState extends State<OrbitaApp> {
+  bool temaEscuro = true;
+
+  void alternarTema() {
+    setState(() {
+      temaEscuro = !temaEscuro;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    const Color verde = Color(0xFFC6FF00);
+
+    final ThemeData tema = ThemeData(
+      brightness: temaEscuro ? Brightness.dark : Brightness.light,
+      scaffoldBackgroundColor: temaEscuro
+          ? const Color(0xFF08090B)
+          : const Color(0xFFF4F6F1),
+      fontFamily: 'Arial',
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: verde,
+        brightness: temaEscuro ? Brightness.dark : Brightness.light,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: temaEscuro
+            ? const Color(0xFF08090B)
+            : const Color(0xFFF4F6F1),
+        foregroundColor:
+            temaEscuro ? Colors.white : const Color(0xFF151715),
+      ),
+    );
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Órbita',
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF08090B),
-        fontFamily: 'Arial',
+      theme: tema,
+      home: PrincipalScreen(
+        temaEscuro: temaEscuro,
+        onAlternarTema: alternarTema,
       ),
-      home: const PrincipalScreen(),
     );
   }
 }
 
 class PrincipalScreen extends StatefulWidget {
-  const PrincipalScreen({super.key});
+  final bool temaEscuro;
+  final VoidCallback onAlternarTema;
+
+  const PrincipalScreen({
+    super.key,
+    required this.temaEscuro,
+    required this.onAlternarTema,
+  });
 
   @override
   State<PrincipalScreen> createState() => _PrincipalScreenState();
@@ -99,7 +138,7 @@ class _PrincipalScreenState extends State<PrincipalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF08090B),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Row(
         children: [
           Sidebar(
@@ -107,6 +146,8 @@ class _PrincipalScreenState extends State<PrincipalScreen> {
             onPaginaSelecionada: selecionarPagina,
             onVisitarNasa: visitarNasa,
             onAbrirApis: abrirApisNasa,
+            temaEscuro: widget.temaEscuro,
+            onAlternarTema: widget.onAlternarTema,
           ),
           Expanded(
             child: paginas[paginaSelecionada],

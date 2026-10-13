@@ -16,72 +16,66 @@ class PhotoCard extends StatelessWidget {
     this.compact = false,
   });
 
-  static const Color verde =
-      Color(0xFFC6FF00);
+  static const Color verde = Color(0xFFC6FF00);
 
   @override
   Widget build(BuildContext context) {
+    final bool escuro =
+        Theme.of(context).brightness == Brightness.dark;
+
+    final Color fundoCartao =
+        escuro ? const Color(0xFF101419) : Colors.white;
+
+    final Color corBorda =
+        escuro ? const Color(0xFF24292E) : const Color(0xFFD9DED5);
+
+    final Color textoPrincipal =
+        escuro ? Colors.white : const Color(0xFF171A16);
+
+    final Color textoSecundario =
+        escuro ? Colors.white38 : const Color(0xFF777D73);
+
+    final Color iconeSemCurtida =
+        escuro ? Colors.white38 : const Color(0xFF777D73);
+
     return ValueListenableBuilder<List<Photo>>(
-      valueListenable:
-          FavoritosService.favoritos,
-      builder: (
-        context,
-        favoritos,
-        child,
-      ) {
+      valueListenable: FavoritosService.favoritos,
+      builder: (context, favoritos, child) {
         final bool curtida =
-            favoritos.any(
-          (item) => item.id == foto.id,
-        );
+            favoritos.any((item) => item.id == foto.id);
 
         return GestureDetector(
           onTap: onTap,
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color:
-                        const Color(0xFF101419),
-                    border: Border.all(
-                      color:
-                          const Color(0xFF24292E),
-                    ),
+                    color: fundoCartao,
+                    border: Border.all(color: corBorda),
                   ),
-                  clipBehavior:
-                      Clip.antiAlias,
+                  clipBehavior: Clip.antiAlias,
                   child: Image.network(
                     foto.imgSrc,
                     fit: BoxFit.cover,
-                    errorBuilder: (
-                      context,
-                      error,
-                      stackTrace,
-                    ) {
-                      return const Center(
+                    errorBuilder: (context, error, stackTrace) {
+                      return Center(
                         child: Icon(
                           Icons.image_outlined,
-                          color:
-                              Colors.white24,
+                          color: textoSecundario,
                           size: 30,
                         ),
                       );
                     },
-                    loadingBuilder: (
-                      context,
-                      child,
-                      progress,
-                    ) {
+                    loadingBuilder: (context, child, progress) {
                       if (progress == null) {
                         return child;
                       }
 
                       return const Center(
-                        child:
-                            CircularProgressIndicator(
+                        child: CircularProgressIndicator(
                           color: verde,
                           strokeWidth: 2,
                         ),
@@ -97,27 +91,20 @@ class PhotoCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      foto.fonte
-                          .toUpperCase(),
+                      foto.fonte.toUpperCase(),
                       maxLines: 1,
-                      overflow:
-                          TextOverflow.ellipsis,
-                      style:
-                          GoogleFonts.inter(
-                        color:
-                            Colors.white38,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        color: textoSecundario,
                         fontSize: 7,
-                        fontWeight:
-                            FontWeight.w500,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                   Text(
                     foto.ano,
-                    style:
-                        GoogleFonts.inter(
-                      color:
-                          Colors.white38,
+                    style: GoogleFonts.inter(
+                      color: textoSecundario,
                       fontSize: 7,
                     ),
                   ),
@@ -127,47 +114,36 @@ class PhotoCard extends StatelessWidget {
               const SizedBox(height: 5),
 
               Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Text(
                       foto.titulo.isEmpty
                           ? 'Imagem da NASA'
                           : foto.titulo,
-                      maxLines:
-                          compact ? 1 : 2,
-                      overflow:
-                          TextOverflow.ellipsis,
-                      style:
-                          GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: compact
-                            ? 9
-                            : 12,
-                        fontWeight:
-                            FontWeight.w400,
+                      maxLines: compact ? 1 : 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        color: textoPrincipal,
+                        fontSize: compact ? 9 : 12,
+                        fontWeight: FontWeight.w400,
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 8),
+
                   GestureDetector(
                     onTap: () {
-                      FavoritosService
-                          .alternar(foto);
+                      FavoritosService.alternar(foto);
                     },
                     child: Padding(
-                      padding:
-                          const EdgeInsets.only(
-                        top: 1,
-                      ),
+                      padding: const EdgeInsets.only(top: 1),
                       child: Icon(
                         curtida
                             ? Icons.favorite
                             : Icons.favorite_border,
-                        color: curtida
-                            ? verde
-                            : Colors.white38,
+                        color: curtida ? verde : iconeSemCurtida,
                         size: compact ? 16 : 20,
                       ),
                     ),
