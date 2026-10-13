@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -24,8 +25,7 @@ class OrbitaApp extends StatelessWidget {
       title: 'Órbita',
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor:
-            const Color(0xFF08090B),
+        scaffoldBackgroundColor: const Color(0xFF08090B),
         fontFamily: 'Arial',
       ),
       home: const PrincipalScreen(),
@@ -37,44 +37,36 @@ class PrincipalScreen extends StatefulWidget {
   const PrincipalScreen({super.key});
 
   @override
-  State<PrincipalScreen> createState() =>
-      _PrincipalScreenState();
+  State<PrincipalScreen> createState() => _PrincipalScreenState();
 }
 
-class _PrincipalScreenState
-    extends State<PrincipalScreen> {
+class _PrincipalScreenState extends State<PrincipalScreen> {
   int paginaSelecionada = 1;
 
   late final List<Widget> paginas = [
     const HomeScreen(),
     ExplorarFlowScreen(
-      onPaginaSelecionada:
-          selecionarPagina,
+      onPaginaSelecionada: selecionarPagina,
     ),
     FavoritosScreen(
       onExplorar: () => selecionarPagina(1),
     ),
     GalaxiasScreen(
-      onPaginaSelecionada:
-          selecionarPagina,
+      onPaginaSelecionada: selecionarPagina,
     ),
     MarteScreen(
-      onPaginaSelecionada:
-          selecionarPagina,
+      onPaginaSelecionada: selecionarPagina,
     ),
     TerraScreen(
-      onPaginaSelecionada:
-          selecionarPagina,
+      onPaginaSelecionada: selecionarPagina,
     ),
     LuaScreen(
-      onPaginaSelecionada:
-          selecionarPagina,
+      onPaginaSelecionada: selecionarPagina,
     ),
   ];
 
   void selecionarPagina(int indice) {
-    if (indice < 0 ||
-        indice >= paginas.length) {
+    if (indice < 0 || indice >= paginas.length) {
       return;
     }
 
@@ -83,35 +75,41 @@ class _PrincipalScreenState
     });
   }
 
-  Future<void> visitarNasa() async {
-    final Uri url = Uri.parse(
-      'https://images-api.nasa.gov',
-    );
+  Future<void> abrirLink(String endereco) async {
+    final Uri url = Uri.parse(endereco);
 
-    await launchUrl(
-      url,
-      webOnlyWindowName: '_blank',
-    );
+    try {
+      await launchUrl(
+        url,
+        webOnlyWindowName: '_blank',
+      );
+    } catch (e) {
+      debugPrint('Não foi possível abrir o link: $e');
+    }
+  }
+
+  Future<void> visitarNasa() async {
+    await abrirLink('https://www.nasa.gov/');
+  }
+
+  Future<void> abrirApisNasa() async {
+    await abrirLink('https://api.nasa.gov/');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          const Color(0xFF08090B),
+      backgroundColor: const Color(0xFF08090B),
       body: Row(
         children: [
           Sidebar(
-            paginaSelecionada:
-                paginaSelecionada,
-            onPaginaSelecionada:
-                selecionarPagina,
-            onVisitarNasa:
-                visitarNasa,
+            paginaSelecionada: paginaSelecionada,
+            onPaginaSelecionada: selecionarPagina,
+            onVisitarNasa: visitarNasa,
+            onAbrirApis: abrirApisNasa,
           ),
           Expanded(
-            child: paginas[
-                paginaSelecionada],
+            child: paginas[paginaSelecionada],
           ),
         ],
       ),

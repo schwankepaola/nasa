@@ -5,12 +5,14 @@ class Sidebar extends StatelessWidget {
   final int paginaSelecionada;
   final Function(int) onPaginaSelecionada;
   final VoidCallback? onVisitarNasa;
+  final VoidCallback? onAbrirApis;
 
   const Sidebar({
     super.key,
     required this.paginaSelecionada,
     required this.onPaginaSelecionada,
     this.onVisitarNasa,
+    this.onAbrirApis,
   });
 
   static const Color verde = Color(0xFFC6FF00);
@@ -29,20 +31,12 @@ class Sidebar extends StatelessWidget {
           // ============================================================
           // LOGO
           // ============================================================
-
           Container(
             height: 64,
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             decoration: const BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: linha,
-                  width: 1,
-                ),
-              ),
+              border: Border(bottom: BorderSide(color: linha, width: 1)),
             ),
             child: Row(
               children: [
@@ -76,7 +70,6 @@ class Sidebar extends StatelessWidget {
           // ============================================================
           // CONTEÚDO DA SIDEBAR
           // ============================================================
-
           Expanded(
             child: SingleChildScrollView(
               child: Column(
@@ -87,11 +80,8 @@ class Sidebar extends StatelessWidget {
                   // ======================================================
                   // MENU PRINCIPAL
                   // ======================================================
-
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 17,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 17),
                     child: Text(
                       'MENU PRINCIPAL',
                       style: GoogleFonts.inter(
@@ -123,15 +113,9 @@ class Sidebar extends StatelessWidget {
                   // ======================================================
                   // LINHA
                   // ======================================================
-
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                    ),
-                    child: Container(
-                      height: 1,
-                      color: linha,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(height: 1, color: linha),
                   ),
 
                   const SizedBox(height: 25),
@@ -139,11 +123,8 @@ class Sidebar extends StatelessWidget {
                   // ======================================================
                   // EXPLORE O COSMOS
                   // ======================================================
-
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 17,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 17),
                     child: Text(
                       'EXPLORE O COSMOS',
                       style: GoogleFonts.inter(
@@ -157,25 +138,13 @@ class Sidebar extends StatelessWidget {
 
                   const SizedBox(height: 12),
 
-                  _itemCosmos(
-                    texto: 'Galáxias',
-                    indice: 3,
-                  ),
+                  _itemCosmos(texto: 'Galáxias', indice: 3),
 
-                  _itemCosmos(
-                    texto: 'Marte',
-                    indice: 4,
-                  ),
+                  _itemCosmos(texto: 'Marte', indice: 4),
 
-                  _itemCosmos(
-                    texto: 'Terra',
-                    indice: 5,
-                  ),
+                  _itemCosmos(texto: 'Terra', indice: 5),
 
-                  _itemCosmos(
-                    texto: 'Lua',
-                    indice: 6,
-                  ),
+                  _itemCosmos(texto: 'Lua', indice: 6),
 
                   const SizedBox(height: 30),
                 ],
@@ -186,26 +155,18 @@ class Sidebar extends StatelessWidget {
           // ============================================================
           // CARD ALÉM DO HORIZONTE
           // ============================================================
-
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 13,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 13),
             child: Container(
               height: 215,
               width: double.infinity,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(7),
-                border: Border.all(
-                  color: const Color(0xFF283329),
-                ),
+                border: Border.all(color: const Color(0xFF283329)),
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF17251A),
-                    Color(0xFF101913),
-                  ],
+                  colors: [Color(0xFF17251A), Color(0xFF101913)],
                 ),
               ),
               clipBehavior: Clip.antiAlias,
@@ -220,9 +181,8 @@ class Sidebar extends StatelessWidget {
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white12,
-                        ),
+                        border: Border.all(color: Colors.white12),
+                        
                       ),
                     ),
                   ),
@@ -235,9 +195,7 @@ class Sidebar extends StatelessWidget {
                       height: 80,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white10,
-                        ),
+                        border: Border.all(color: Colors.white10),
                       ),
                     ),
                   ),
@@ -260,8 +218,7 @@ class Sidebar extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(13),
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'ALÉM DO HORIZONTE',
@@ -298,6 +255,19 @@ class Sidebar extends StatelessWidget {
                             ),
                           ),
                         ),
+                        const SizedBox(height: 12),
+
+                        GestureDetector(
+                          onTap: onAbrirApis,
+                          child: Text(
+                            'NASA Open APIs  ↗',
+                            style: GoogleFonts.inter(
+                              color: const Color(0xFFC6FF00),
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -311,15 +281,12 @@ class Sidebar extends StatelessWidget {
           // ============================================================
           // RODAPÉ DA SIDEBAR
           // ============================================================
-
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 17,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 17),
             child: Text(
               'FEITO PARA CURIOSOS  •  2026',
               style: GoogleFonts.inter(
-               color: Colors.white24,
+                color: Colors.white24,
                 fontSize: 6,
                 letterSpacing: .5,
               ),
@@ -349,48 +316,27 @@ class Sidebar extends StatelessWidget {
         onPaginaSelecionada(indice);
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(
-          horizontal: 9,
-          vertical: 2,
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 9,
-          vertical: 10,
-        ),
+        margin: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 10),
         decoration: BoxDecoration(
-          color: selecionado
-              ? fundoSelecionado
-              : Colors.transparent,
+          color: selecionado ? fundoSelecionado : Colors.transparent,
           borderRadius: BorderRadius.circular(5),
           border: selecionado
-              ? Border.all(
-                  color: const Color(0xFF31412F),
-                  width: 1,
-                )
+              ? Border.all(color: const Color(0xFF31412F), width: 1)
               : null,
         ),
         child: Row(
           children: [
-            Icon(
-              icone,
-              size: 16,
-              color: selecionado
-                  ? verde
-                  : Colors.white38,
-            ),
+            Icon(icone, size: 16, color: selecionado ? verde : Colors.white38),
 
             const SizedBox(width: 9),
 
             Text(
               texto,
               style: GoogleFonts.inter(
-                color: selecionado
-                    ? Colors.white
-                    : Colors.white54,
+                color: selecionado ? Colors.white : Colors.white54,
                 fontSize: 9,
-                fontWeight: selecionado
-                    ? FontWeight.w600
-                    : FontWeight.w400,
+                fontWeight: selecionado ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
 
@@ -400,9 +346,7 @@ class Sidebar extends StatelessWidget {
               Icon(
                 Icons.chevron_right,
                 size: 13,
-                color: selecionado
-                    ? verde
-                    : Colors.white24,
+                color: selecionado ? verde : Colors.white24,
               ),
           ],
         ),
@@ -414,10 +358,7 @@ class Sidebar extends StatelessWidget {
   // ITEM DO COSMOS
   // ==================================================================
 
-  Widget _itemCosmos({
-    required String texto,
-    required int indice,
-  }) {
+  Widget _itemCosmos({required String texto, required int indice}) {
     final bool selecionado = paginaSelecionada == indice;
 
     return GestureDetector(
@@ -425,19 +366,14 @@ class Sidebar extends StatelessWidget {
         onPaginaSelecionada(indice);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         child: Row(
           children: [
             Container(
               width: 3,
               height: 3,
               decoration: BoxDecoration(
-                color: selecionado
-                    ? verde
-                    : Colors.white24,
+                color: selecionado ? verde : Colors.white24,
                 shape: BoxShape.circle,
               ),
             ),
@@ -447,13 +383,9 @@ class Sidebar extends StatelessWidget {
             Text(
               texto,
               style: GoogleFonts.inter(
-                color: selecionado
-                    ? verde
-                    : Colors.white38,
+                color: selecionado ? verde : Colors.white38,
                 fontSize: 8,
-                fontWeight: selecionado
-                    ? FontWeight.w600
-                    : FontWeight.w400,
+                fontWeight: selecionado ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
           ],
