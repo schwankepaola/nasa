@@ -24,6 +24,16 @@ class _PhotoCardState extends State<PhotoCard> {
   static const Color verde = Color(0xFFC6FF00);
 
   bool mouseSobreImagem = false;
+  bool imagemComErro = false;
+
+  @override
+  void didUpdateWidget(covariant PhotoCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.foto.imgSrc != widget.foto.imgSrc) {
+      imagemComErro = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +50,10 @@ class _PhotoCardState extends State<PhotoCard> {
         escuro ? Colors.white : const Color(0xFF171A16);
 
     final Color textoSecundario =
-        escuro ? Colors.white38 : const Color(0xFF777D73);
+        escuro ? Colors.white54 : const Color(0xFF777D73);
 
     final Color iconeSemCurtida =
-        escuro ? Colors.white38 : const Color(0xFF777D73);
+        escuro ? Colors.white54 : const Color(0xFF777D73);
 
     return ValueListenableBuilder<List<Photo>>(
       valueListenable: FavoritosService.favoritos,
@@ -56,6 +66,7 @@ class _PhotoCardState extends State<PhotoCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // IMAGEM
               Expanded(
                 child: MouseRegion(
                   onEnter: (_) {
@@ -82,50 +93,73 @@ class _PhotoCardState extends State<PhotoCard> {
                           scale: mouseSobreImagem ? 1.05 : 1.0,
                           duration: const Duration(milliseconds: 250),
                           curve: Curves.easeOut,
-                          child: Image.network(
-                            widget.foto.imgSrc,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Center(
-                                child: Icon(
-                                  Icons.image_outlined,
-                                  color: textoSecundario,
-                                  size: 30,
-                                ),
-                              );
-                            },
-                            loadingBuilder: (context, child, progress) {
-                              if (progress == null) {
-                                return child;
-                              }
+                          child: imagemComErro
+                              ? _imagemIndisponivel(textoSecundario)
+                              : Image.network(
+                                  widget.foto.imgSrc,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  headers: const {
+                                    'Accept': 'image/avif,image/webp,image/*,*/*',
+                                  },
+                                  errorBuilder:
+                                      (context, error, stackTrace) {
+                                    debugPrint(
+                                      'Erro ao carregar imagem: '
+                                      '${widget.foto.imgSrc}',
+                                    );
+                                    debugPrint('Detalhes: $error');
 
-                              return const Center(
-                                child: CircularProgressIndicator(
-                                  color: verde,
-                                  strokeWidth: 2,
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      if (mounted && !imagemComErro) {
+                                        setState(() {
+                                          imagemComErro = true;
+                                        });
+                                      }
+                                    });
+
+                                    return _imagemIndisponivel(
+                                      textoSecundario,
+                                    );
+                                  },
+                                  loadingBuilder:
+                                      (context, child, progress) {
+                                    if (progress == null) {
+                                      return child;
+                                    }
+
+                                    return const Center(
+                                      child: CircularProgressIndicator(
+                                        color: verde,
+                                        strokeWidth: 2,
+                                      ),
+                                    );
+                                  },
                                 ),
-                              );
-                            },
-                          ),
                         ),
 
-                        AnimatedOpacity(
-                          opacity: mouseSobreImagem ? 1.0 : 0.0,
-                          duration: const Duration(milliseconds: 200),
-                          child: Container(
-                            color: Colors.black.withValues(alpha: 0.30),
-                            alignment: Alignment.center,
+                        // EFEITO AO PASSAR O MOUSE
+                        IgnorePointer(
+                          child: AnimatedOpacity(
+                            opacity: mouseSobreImagem ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 200),
                             child: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: verde,
-                                borderRadius: BorderRadius.circular(22),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_forward,
-                                color: Colors.black,
-                                size: 24,
+                              color: Colors.black.withValues(alpha: 0.30),
+                              alignment: Alignment.center,
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: verde,
+                                  borderRadius: BorderRadius.circular(22),
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_forward,
+                                  color: Colors.black,
+                                  size: 24,
+                                ),
                               ),
                             ),
                           ),
@@ -138,6 +172,7 @@ class _PhotoCardState extends State<PhotoCard> {
 
               const SizedBox(height: 8),
 
+              // FONTE E ANO
               Row(
                 children: [
                   Expanded(
@@ -147,7 +182,7 @@ class _PhotoCardState extends State<PhotoCard> {
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
                         color: textoSecundario,
-                        fontSize: 7,
+                        fontSize: 8,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -156,7 +191,7 @@ class _PhotoCardState extends State<PhotoCard> {
                     widget.foto.ano,
                     style: GoogleFonts.inter(
                       color: textoSecundario,
-                      fontSize: 7,
+                      fontSize: 8,
                     ),
                   ),
                 ],
@@ -164,6 +199,7 @@ class _PhotoCardState extends State<PhotoCard> {
 
               const SizedBox(height: 5),
 
+              // TÍTULO E FAVORITOS
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -172,11 +208,11 @@ class _PhotoCardState extends State<PhotoCard> {
                       widget.foto.titulo.isEmpty
                           ? 'Imagem da NASA'
                           : widget.foto.titulo,
-                      maxLines: widget.compact ? 1 : 2,
+                      maxLines: widget.compact ? 2 : 3,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
                         color: textoPrincipal,
-                        fontSize: widget.compact ? 9 : 12,
+                        fontSize: widget.compact ? 10 : 12,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -185,17 +221,18 @@ class _PhotoCardState extends State<PhotoCard> {
                   const SizedBox(width: 8),
 
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () {
                       FavoritosService.alternar(widget.foto);
                     },
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 1),
+                      padding: const EdgeInsets.all(2),
                       child: Icon(
                         curtida
                             ? Icons.favorite
                             : Icons.favorite_border,
                         color: curtida ? verde : iconeSemCurtida,
-                        size: widget.compact ? 16 : 20,
+                        size: widget.compact ? 17 : 20,
                       ),
                     ),
                   ),
@@ -205,6 +242,32 @@ class _PhotoCardState extends State<PhotoCard> {
           ),
         );
       },
+    );
+  }
+
+  Widget _imagemIndisponivel(Color cor) {
+    return Container(
+      color: const Color(0xFF15191D),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.image_not_supported_outlined,
+            color: cor,
+            size: 30,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Imagem indisponível',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              color: cor,
+              fontSize: 9,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/camera.dart';
@@ -32,9 +33,7 @@ class NasaApiService {
     }
 
     final dados = jsonDecode(resposta.body);
-
     final List itens = dados['collection']?['items'] ?? [];
-
     final List<Photo> fotos = [];
 
     for (final item in itens) {
@@ -64,22 +63,15 @@ class NasaApiService {
         final String fonte =
             informacoes['center']?.toString() ?? 'NASA';
 
-        String ano = '';
+        final String ano =
+            data.length >= 4 ? data.substring(0, 4) : '';
 
-        if (data.length >= 4) {
-          ano = data.substring(0, 4);
-        }
-
-        // Primeiro tenta pegar a imagem diretamente da busca.
         String imagemUrl = _buscarLinkDaBusca(item);
 
-        // Se não encontrou, tenta buscar o arquivo pelo NASA ID.
         if (imagemUrl.isEmpty) {
           imagemUrl = await _buscarImagemDoAsset(nasaId);
         }
 
-        // Se mesmo assim não encontrou uma imagem válida,
-        // não adiciona esse item.
         if (imagemUrl.isEmpty) {
           continue;
         }
@@ -118,10 +110,8 @@ class NasaApiService {
             rover: rover,
           ),
         );
-      } catch (_) {
-        // Se um item apresentar problema, continua
-        // carregando os outros normalmente.
-        continue;
+      } catch (e) {
+        debugPrint('Erro ao processar imagem da NASA: $e');
       }
     }
 
@@ -132,35 +122,53 @@ class NasaApiService {
     try {
       final List links = item['links'] ?? [];
 
-      for (final link in links) {
-        final String render =
-            link['render']?.toString() ?? '';
+      // Prioriza arquivos de imagem maiores.
+      const prioridades = [
+        '~large.',
+        '~orig.',
+        '~medium.',
+        '~small.',
+        '~thumb.',
+      ];
 
-        final String href =
-            link['href']?.toString() ?? '';
+      for (final prioridade in prioridades) {
+        for (final link in links) {
+          final String href = link['href']?.toString() ?? '';
+          final String render = link['render']?.toString() ?? '';
+          final String url = href.toLowerCase();
 
-        if (render == 'image' && href.isNotEmpty) {
-          return href;
+          if (href.isNotEmpty &&
+              render == 'image' &&
+              _formatoImagem(url) &&
+              url.contains(prioridade)) {
+            return _normalizarUrl(href);
+          }
         }
       }
 
-      // Segundo método: procura qualquer link que pareça
-      // ser um arquivo de imagem.
+      // Tenta encontrar qualquer link de imagem.
       for (final link in links) {
-        final String href =
-            link['href']?.toString() ?? '';
+        final String href = link['href']?.toString() ?? '';
+        final String render = link['render']?.toString() ?? '';
 
-        final String url = href.toLowerCase();
-
-        if (url.endsWith('.jpg') ||
-            url.endsWith('.jpeg') ||
-            url.endsWith('.png') ||
-            url.endsWith('.webp')) {
-          return href;
+        if (href.isNotEmpty &&
+            render == 'image' &&
+            _formatoImagem(href.toLowerCase())) {
+          return _normalizarUrl(href);
         }
       }
-    } catch (_) {
-      return '';
+
+      // Algumas respostas não informam render = image.
+      for (final link in links) {
+        final String href = link['href']?.toString() ?? '';
+
+        if (href.isNotEmpty &&
+            _formatoImagem(href.toLowerCase())) {
+          return _normalizarUrl(href);
+        }
+      }
+    } catch (e) {
+      debugPrint('Erro ao localizar imagem: $e');
     }
 
     return '';
@@ -168,10 +176,7 @@ class NasaApiService {
 
   Future<String> _buscarImagemDoAsset(String nasaId) async {
     try {
-      final uri = Uri.parse(
-        '$baseUrl/asset/$nasaId',
-      );
-
+      final uri = Uri.parse('$baseUrl/asset/$nasaId');
       final resposta = await http.get(uri);
 
       if (resposta.statusCode != 200) {
@@ -179,50 +184,60 @@ class NasaApiService {
       }
 
       final dados = jsonDecode(resposta.body);
+      final List arquivos = dados['collection']?['items'] ?? [];
 
-      final List arquivos =
-          dados['collection']?['items'] ?? [];
+      const prioridades = [
+        '~large.',
+        '~orig.',
+        '~medium.',
+        '~small.',
+        '~thumb.',
+      ];
 
-      // Procura primeiro por JPG/JPEG.
+      for (final prioridade in prioridades) {
+        for (final arquivo in arquivos) {
+          final String href = arquivo['href']?.toString() ?? '';
+          final String url = href.toLowerCase();
+
+          if (href.isNotEmpty &&
+              _formatoImagem(url) &&
+              url.contains(prioridade)) {
+            return _normalizarUrl(href);
+          }
+        }
+      }
+
+      // Alternativa: procura qualquer arquivo de imagem.
       for (final arquivo in arquivos) {
-        final String href =
-            arquivo['href']?.toString() ?? '';
+        final String href = arquivo['href']?.toString() ?? '';
 
-        final String url = href.toLowerCase();
-
-        if (url.endsWith('.jpg') ||
-            url.endsWith('.jpeg')) {
-          return href;
+        if (href.isNotEmpty &&
+            _formatoImagem(href.toLowerCase())) {
+          return _normalizarUrl(href);
         }
       }
-
-      // Depois tenta PNG ou WEBP.
-      for (final arquivo in arquivos) {
-        final String href =
-            arquivo['href']?.toString() ?? '';
-
-        final String url = href.toLowerCase();
-
-        if (url.endsWith('.png') ||
-            url.endsWith('.webp')) {
-          return href;
-        }
-      }
-
-      // Última tentativa: qualquer arquivo retornado.
-      if (arquivos.isNotEmpty) {
-        final String href =
-            arquivos.first['href']?.toString() ?? '';
-
-        if (href.isNotEmpty) {
-          return href;
-        }
-      }
-    } catch (_) {
-      return '';
+    } catch (e) {
+      debugPrint('Erro ao buscar arquivo $nasaId: $e');
     }
 
     return '';
+  }
+
+  bool _formatoImagem(String url) {
+    final String caminho = url.split('?').first.toLowerCase();
+
+    return caminho.endsWith('.jpg') ||
+        caminho.endsWith('.jpeg') ||
+        caminho.endsWith('.png') ||
+        caminho.endsWith('.webp');
+  }
+
+  String _normalizarUrl(String url) {
+    if (url.startsWith('http://')) {
+      return url.replaceFirst('http://', 'https://');
+    }
+
+    return url;
   }
 
   Future<List<Photo>> buscarFotos({
@@ -237,11 +252,9 @@ class NasaApiService {
       case 'opportunity':
         nomeRover = 'Opportunity';
         break;
-
       case 'spirit':
         nomeRover = 'Spirit';
         break;
-
       default:
         nomeRover = 'Curiosity';
     }
@@ -257,30 +270,28 @@ class NasaApiService {
       page: page,
     );
 
-    return fotos
-        .map(
-          (foto) => Photo(
-            id: foto.id,
-            sol: sol,
-            imgSrc: foto.imgSrc,
-            earthDate: foto.earthDate,
-            titulo: foto.titulo,
-            fonte: foto.fonte,
-            ano: foto.ano,
-            camera: foto.camera,
-            rover: Rover(
-              id: 0,
-              name: nomeRover,
-              landingDate: '',
-              launchDate: '',
-              status: 'Acervo',
-              maxSol: 0,
-              maxDate: foto.earthDate,
-              totalPhotos: 0,
-            ),
-          ),
-        )
-        .toList();
+    return fotos.map((foto) {
+      return Photo(
+        id: foto.id,
+        sol: sol,
+        imgSrc: foto.imgSrc,
+        earthDate: foto.earthDate,
+        titulo: foto.titulo,
+        fonte: foto.fonte,
+        ano: foto.ano,
+        camera: foto.camera,
+        rover: Rover(
+          id: 0,
+          name: nomeRover,
+          landingDate: '',
+          launchDate: '',
+          status: 'Acervo',
+          maxSol: 0,
+          maxDate: foto.earthDate,
+          totalPhotos: 0,
+        ),
+      );
+    }).toList();
   }
 
   Future<List<Photo>> buscarFotosRecentes({

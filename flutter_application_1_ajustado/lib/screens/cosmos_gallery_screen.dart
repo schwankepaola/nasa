@@ -19,14 +19,15 @@ class CosmosGalleryScreen extends StatefulWidget {
   });
 
   @override
-  State<CosmosGalleryScreen> createState() => _CosmosGalleryScreenState();
+  State<CosmosGalleryScreen> createState() =>
+      _CosmosGalleryScreenState();
 }
 
 class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
   static const Color verde = Color(0xFFC6FF00);
   static const Color verdeClaro = Color(0xFF536D00);
-  final ScrollController _scrollController = ScrollController();
 
+  final ScrollController _scrollController = ScrollController();
   final NasaApiService api = NasaApiService();
   final TextEditingController buscaController = TextEditingController();
 
@@ -34,25 +35,31 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
 
   bool carregando = true;
   String mensagemErro = '';
+  String consultaAtual = '';
 
-  bool get escuro => Theme.of(context).brightness == Brightness.dark;
+  bool get escuro =>
+      Theme.of(context).brightness == Brightness.dark;
 
   Color get fundo => Theme.of(context).scaffoldBackgroundColor;
 
-  Color get textoPrincipal => escuro ? Colors.white : const Color(0xFF171A16);
+  Color get textoPrincipal =>
+      escuro ? Colors.white : const Color(0xFF171A16);
 
   Color get textoSecundario =>
-      escuro ? Colors.white54 : const Color(0xFF60665D);
+      escuro ? Colors.white70 : const Color(0xFF60665D);
 
-  Color get textoFraco => escuro ? Colors.white38 : const Color(0xFF777D73);
+  Color get textoFraco =>
+      escuro ? Colors.white54 : const Color(0xFF777D73);
 
-  Color get linha => escuro ? const Color(0xFF202328) : const Color(0xFFD9DED5);
+  Color get linha =>
+      escuro ? const Color(0xFF202328) : const Color(0xFFD9DED5);
 
   Color get corDestaque => escuro ? verde : verdeClaro;
 
   @override
   void initState() {
     super.initState();
+    consultaAtual = widget.consulta;
     carregarFotos(widget.consulta);
   }
 
@@ -64,9 +71,12 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
   }
 
   Future<void> carregarFotos(String consulta) async {
+    if (!mounted) return;
+
     setState(() {
       carregando = true;
       mensagemErro = '';
+      consultaAtual = consulta;
     });
 
     try {
@@ -80,14 +90,21 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
       setState(() {
         fotos = resultado;
         carregando = false;
+
+        if (resultado.isEmpty) {
+          mensagemErro = '';
+        }
       });
-    } catch (_) {
+    } catch (erro) {
+      debugPrint('Erro ao carregar imagens ($consulta): $erro');
+
       if (!mounted) return;
 
       setState(() {
         fotos = [];
         carregando = false;
-        mensagemErro = 'Não foi possível carregar as imagens.';
+        mensagemErro =
+            'Não foi possível carregar as imagens. Verifique sua conexão e tente novamente.';
       });
     }
   }
@@ -106,7 +123,9 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
   void abrirDetalhes(Photo foto) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => DetalheScreen(foto: foto)),
+      MaterialPageRoute(
+        builder: (context) => DetalheScreen(foto: foto),
+      ),
     );
   }
 
@@ -118,13 +137,18 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
       child: SingleChildScrollView(
         controller: _scrollController,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(42, 35, 42, 45),
+          padding: EdgeInsets.fromLTRB(
+            MediaQuery.of(context).size.width < 600 ? 18 : 42,
+            35,
+            MediaQuery.of(context).size.width < 600 ? 18 : 42,
+            45,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // CABEÇALHO
               Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Column(
@@ -132,23 +156,21 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
                       children: [
                         Row(
                           children: [
-                            Container(width: 18, height: 1, color: corDestaque),
-                            const SizedBox(width: 8),
-                            Text(
-                              'UM UNIVERSO PARA EXPLORAR',
-                              style: GoogleFonts.inter(
-                                color: corDestaque,
-                                fontSize: 7,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.1,
-                              ),
+                            Container(
+                              width: 18,
+                              height: 1,
+                              color: corDestaque,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              '/ 002',
-                              style: GoogleFonts.inter(
-                                color: textoFraco,
-                                fontSize: 7,
+                            Flexible(
+                              child: Text(
+                                'UM UNIVERSO PARA EXPLORAR',
+                                style: GoogleFonts.inter(
+                                  color: corDestaque,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.1,
+                                ),
                               ),
                             ),
                           ],
@@ -158,9 +180,12 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
                           text: TextSpan(
                             style: GoogleFonts.inter(
                               color: textoPrincipal,
-                              fontSize: 38,
+                              fontSize:
+                                  MediaQuery.of(context).size.width < 600
+                                      ? 29
+                                      : 38,
                               fontWeight: FontWeight.w300,
-                              letterSpacing: -1.8,
+                              letterSpacing: -1.5,
                             ),
                             children: [
                               const TextSpan(text: 'Explore o '),
@@ -176,39 +201,34 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
                           'Viaje pelo acervo visual da NASA, uma descoberta de cada vez.',
                           style: GoogleFonts.inter(
                             color: textoSecundario,
-                            fontSize: 9,
+                            fontSize: 10,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 20),
+                  const SizedBox(width: 8),
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.all_inclusive,
-                            color: corDestaque,
-                            size: 17,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '${fotos.length.toString().padLeft(2, '0')} / OBJETOS',
-                            style: GoogleFonts.inter(
-                              color: textoFraco,
-                              fontSize: 7,
-                            ),
-                          ),
-                        ],
+                      Icon(
+                        Icons.all_inclusive,
+                        color: corDestaque,
+                        size: 22,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${fotos.length.toString().padLeft(2, '0')} OBJETOS',
+                        style: GoogleFonts.inter(
+                          color: textoFraco,
+                          fontSize: 8,
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
 
               // ABAS E BUSCA
               LayoutBuilder(
@@ -217,7 +237,7 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
 
                   final abas = Wrap(
                     spacing: 0,
-                    runSpacing: 10,
+                    runSpacing: 12,
                     children: [
                       _aba('Descobertas', 1),
                       _aba('Galáxias', 3),
@@ -250,13 +270,17 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
 
               const SizedBox(height: 14),
               Container(height: 1, color: linha),
-              const SizedBox(height: 14),
+              const SizedBox(height: 20),
 
               // GALERIA
               if (carregando)
                 const SizedBox(
-                  height: 420,
-                  child: Center(child: CircularProgressIndicator(color: verde)),
+                  height: 350,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: verde,
+                    ),
+                  ),
                 )
               else if (mensagemErro.isNotEmpty)
                 _erro()
@@ -275,19 +299,24 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
 
                     return GridView.builder(
                       shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      physics:
+                          const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: colunas,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 28,
-                        childAspectRatio: colunas == 1 ? 1.15 : 0.92,
+                        childAspectRatio:
+                            colunas == 1 ? 1.0 : 0.82,
                       ),
                       itemCount: fotos.length,
                       itemBuilder: (context, index) {
+                        final foto = fotos[index];
+
                         return PhotoCard(
-                          foto: fotos[index],
+                          foto: foto,
                           compact: true,
-                          onTap: () => abrirDetalhes(fotos[index]),
+                          onTap: () => abrirDetalhes(foto),
                         );
                       },
                     );
@@ -318,7 +347,7 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
                     'Imagens e dados: NASA Open APIs.',
                     style: GoogleFonts.inter(
                       color: textoSecundario,
-                      fontSize: 7,
+                      fontSize: 8,
                       height: 1.5,
                     ),
                   ),
@@ -336,7 +365,7 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
                       'VOLTAR AO TOPO ↑',
                       style: GoogleFonts.inter(
                         color: textoSecundario,
-                        fontSize: 7,
+                        fontSize: 8,
                       ),
                     ),
                   ),
@@ -351,7 +380,8 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
 
   // ABAS
   Widget _aba(String texto, int indice) {
-    final bool selecionada = widget.paginaSelecionada == indice;
+    final bool selecionada =
+        widget.paginaSelecionada == indice;
 
     return GestureDetector(
       onTap: widget.onPaginaSelecionada == null
@@ -363,16 +393,23 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
         decoration: selecionada
             ? BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(color: corDestaque, width: 2),
+                  bottom: BorderSide(
+                    color: corDestaque,
+                    width: 2,
+                  ),
                 ),
               )
             : null,
         child: Text(
           texto,
           style: GoogleFonts.inter(
-            color: selecionada ? textoPrincipal : textoFraco,
-            fontSize: 8,
-            fontWeight: selecionada ? FontWeight.w600 : FontWeight.w400,
+            color: selecionada
+                ? textoPrincipal
+                : textoFraco,
+            fontSize: 10,
+            fontWeight: selecionada
+                ? FontWeight.w600
+                : FontWeight.w400,
           ),
         ),
       ),
@@ -387,20 +424,37 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
       child: TextField(
         controller: buscaController,
         onSubmitted: (_) => pesquisar(),
-        style: GoogleFonts.inter(color: textoPrincipal, fontSize: 10),
+        style: GoogleFonts.inter(
+          color: textoPrincipal,
+          fontSize: 11,
+        ),
         decoration: InputDecoration(
           hintText: 'Buscar no universo...',
-          hintStyle: GoogleFonts.inter(color: textoFraco, fontSize: 9),
-          prefixIcon: Icon(Icons.search, size: 15, color: textoSecundario),
+          hintStyle: GoogleFonts.inter(
+            color: textoFraco,
+            fontSize: 10,
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            size: 16,
+            color: textoSecundario,
+          ),
           suffixIcon: IconButton(
             padding: EdgeInsets.zero,
             tooltip: 'Pesquisar',
             onPressed: pesquisar,
-            icon: Icon(Icons.arrow_forward, color: corDestaque, size: 15),
+            icon: Icon(
+              Icons.arrow_forward,
+              color: corDestaque,
+              size: 16,
+            ),
           ),
           filled: true,
-          fillColor: escuro ? const Color(0xFF101419) : Colors.white,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+          fillColor: escuro
+              ? const Color(0xFF101419)
+              : Colors.white,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 10),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(color: linha),
             borderRadius: BorderRadius.circular(4),
@@ -417,20 +471,28 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
   // ERRO
   Widget _erro() {
     return SizedBox(
-      height: 420,
+      height: 350,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, color: textoSecundario, size: 38),
+            Icon(
+              Icons.error_outline,
+              color: textoSecundario,
+              size: 38,
+            ),
             const SizedBox(height: 12),
             Text(
               mensagemErro,
-              style: GoogleFonts.inter(color: textoSecundario, fontSize: 10),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                color: textoSecundario,
+                fontSize: 11,
+              ),
             ),
             const SizedBox(height: 15),
             TextButton(
-              onPressed: () => carregarFotos(widget.consulta),
+              onPressed: () => carregarFotos(consultaAtual),
               child: Text(
                 'Tentar novamente',
                 style: TextStyle(color: corDestaque),
@@ -445,11 +507,33 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
   // GALERIA VAZIA
   Widget _vazio() {
     return SizedBox(
-      height: 420,
+      height: 350,
       child: Center(
-        child: Text(
-          'Nenhuma imagem encontrada.',
-          style: GoogleFonts.inter(color: textoSecundario, fontSize: 11),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.image_search_outlined,
+              color: textoSecundario,
+              size: 38,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Nenhuma imagem encontrada.',
+              style: GoogleFonts.inter(
+                color: textoSecundario,
+                fontSize: 11,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => carregarFotos(widget.consulta),
+              child: Text(
+                'Carregar novamente',
+                style: TextStyle(color: corDestaque),
+              ),
+            ),
+          ],
         ),
       ),
     );
