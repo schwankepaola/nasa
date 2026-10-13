@@ -19,13 +19,13 @@ class CosmosGalleryScreen extends StatefulWidget {
   });
 
   @override
-  State<CosmosGalleryScreen> createState() =>
-      _CosmosGalleryScreenState();
+  State<CosmosGalleryScreen> createState() => _CosmosGalleryScreenState();
 }
 
 class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
   static const Color verde = Color(0xFFC6FF00);
   static const Color verdeClaro = Color(0xFF536D00);
+  final ScrollController _scrollController = ScrollController();
 
   final NasaApiService api = NasaApiService();
   final TextEditingController buscaController = TextEditingController();
@@ -35,23 +35,18 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
   bool carregando = true;
   String mensagemErro = '';
 
-  bool get escuro =>
-      Theme.of(context).brightness == Brightness.dark;
+  bool get escuro => Theme.of(context).brightness == Brightness.dark;
 
-  Color get fundo =>
-      Theme.of(context).scaffoldBackgroundColor;
+  Color get fundo => Theme.of(context).scaffoldBackgroundColor;
 
-  Color get textoPrincipal =>
-      escuro ? Colors.white : const Color(0xFF171A16);
+  Color get textoPrincipal => escuro ? Colors.white : const Color(0xFF171A16);
 
   Color get textoSecundario =>
       escuro ? Colors.white54 : const Color(0xFF60665D);
 
-  Color get textoFraco =>
-      escuro ? Colors.white38 : const Color(0xFF777D73);
+  Color get textoFraco => escuro ? Colors.white38 : const Color(0xFF777D73);
 
-  Color get linha =>
-      escuro ? const Color(0xFF202328) : const Color(0xFFD9DED5);
+  Color get linha => escuro ? const Color(0xFF202328) : const Color(0xFFD9DED5);
 
   Color get corDestaque => escuro ? verde : verdeClaro;
 
@@ -64,6 +59,7 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
   @override
   void dispose() {
     buscaController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -110,9 +106,7 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
   void abrirDetalhes(Photo foto) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => DetalheScreen(foto: foto),
-      ),
+      MaterialPageRoute(builder: (context) => DetalheScreen(foto: foto)),
     );
   }
 
@@ -122,6 +116,7 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
       color: fundo,
       width: double.infinity,
       child: SingleChildScrollView(
+        controller: _scrollController,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(42, 35, 42, 45),
           child: Column(
@@ -137,11 +132,7 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
                       children: [
                         Row(
                           children: [
-                            Container(
-                              width: 18,
-                              height: 1,
-                              color: corDestaque,
-                            ),
+                            Container(width: 18, height: 1, color: corDestaque),
                             const SizedBox(width: 8),
                             Text(
                               'UM UNIVERSO PARA EXPLORAR',
@@ -265,9 +256,7 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
               if (carregando)
                 const SizedBox(
                   height: 420,
-                  child: Center(
-                    child: CircularProgressIndicator(color: verde),
-                  ),
+                  child: Center(child: CircularProgressIndicator(color: verde)),
                 )
               else if (mensagemErro.isNotEmpty)
                 _erro()
@@ -287,8 +276,7 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
                     return GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: colunas,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 28,
@@ -336,12 +324,13 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      Scrollable.ensureVisible(
-                        context,
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeInOut,
-                        alignment: 0,
-                      );
+                      if (_scrollController.hasClients) {
+                        _scrollController.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 600),
+                          curve: Curves.easeInOut,
+                        );
+                      }
                     },
                     child: Text(
                       'VOLTAR AO TOPO ↑',
@@ -374,10 +363,7 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
         decoration: selecionada
             ? BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(
-                    color: corDestaque,
-                    width: 2,
-                  ),
+                  bottom: BorderSide(color: corDestaque, width: 2),
                 ),
               )
             : null,
@@ -386,9 +372,7 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
           style: GoogleFonts.inter(
             color: selecionada ? textoPrincipal : textoFraco,
             fontSize: 8,
-            fontWeight: selecionada
-                ? FontWeight.w600
-                : FontWeight.w400,
+            fontWeight: selecionada ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
       ),
@@ -403,30 +387,16 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
       child: TextField(
         controller: buscaController,
         onSubmitted: (_) => pesquisar(),
-        style: GoogleFonts.inter(
-          color: textoPrincipal,
-          fontSize: 10,
-        ),
+        style: GoogleFonts.inter(color: textoPrincipal, fontSize: 10),
         decoration: InputDecoration(
           hintText: 'Buscar no universo...',
-          hintStyle: GoogleFonts.inter(
-            color: textoFraco,
-            fontSize: 9,
-          ),
-          prefixIcon: Icon(
-            Icons.search,
-            size: 15,
-            color: textoSecundario,
-          ),
+          hintStyle: GoogleFonts.inter(color: textoFraco, fontSize: 9),
+          prefixIcon: Icon(Icons.search, size: 15, color: textoSecundario),
           suffixIcon: IconButton(
             padding: EdgeInsets.zero,
             tooltip: 'Pesquisar',
             onPressed: pesquisar,
-            icon: Icon(
-              Icons.arrow_forward,
-              color: corDestaque,
-              size: 15,
-            ),
+            icon: Icon(Icons.arrow_forward, color: corDestaque, size: 15),
           ),
           filled: true,
           fillColor: escuro ? const Color(0xFF101419) : Colors.white,
@@ -452,18 +422,11 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline,
-              color: textoSecundario,
-              size: 38,
-            ),
+            Icon(Icons.error_outline, color: textoSecundario, size: 38),
             const SizedBox(height: 12),
             Text(
               mensagemErro,
-              style: GoogleFonts.inter(
-                color: textoSecundario,
-                fontSize: 10,
-              ),
+              style: GoogleFonts.inter(color: textoSecundario, fontSize: 10),
             ),
             const SizedBox(height: 15),
             TextButton(
@@ -486,10 +449,7 @@ class _CosmosGalleryScreenState extends State<CosmosGalleryScreen> {
       child: Center(
         child: Text(
           'Nenhuma imagem encontrada.',
-          style: GoogleFonts.inter(
-            color: textoSecundario,
-            fontSize: 11,
-          ),
+          style: GoogleFonts.inter(color: textoSecundario, fontSize: 11),
         ),
       ),
     );

@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/photo.dart';
 import '../services/favoritos_service.dart';
 
-class PhotoCard extends StatelessWidget {
+class PhotoCard extends StatefulWidget {
   final Photo foto;
   final VoidCallback? onTap;
   final bool compact;
@@ -16,7 +16,14 @@ class PhotoCard extends StatelessWidget {
     this.compact = false,
   });
 
+  @override
+  State<PhotoCard> createState() => _PhotoCardState();
+}
+
+class _PhotoCardState extends State<PhotoCard> {
   static const Color verde = Color(0xFFC6FF00);
+
+  bool mouseSobreImagem = false;
 
   @override
   Widget build(BuildContext context) {
@@ -42,45 +49,89 @@ class PhotoCard extends StatelessWidget {
       valueListenable: FavoritosService.favoritos,
       builder: (context, favoritos, child) {
         final bool curtida =
-            favoritos.any((item) => item.id == foto.id);
+            favoritos.any((item) => item.id == widget.foto.id);
 
         return GestureDetector(
-          onTap: onTap,
+          onTap: widget.onTap,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: fundoCartao,
-                    border: Border.all(color: corBorda),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Image.network(
-                    foto.imgSrc,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                        child: Icon(
-                          Icons.image_outlined,
-                          color: textoSecundario,
-                          size: 30,
-                        ),
-                      );
-                    },
-                    loadingBuilder: (context, child, progress) {
-                      if (progress == null) {
-                        return child;
-                      }
+                child: MouseRegion(
+                  onEnter: (_) {
+                    setState(() {
+                      mouseSobreImagem = true;
+                    });
+                  },
+                  onExit: (_) {
+                    setState(() {
+                      mouseSobreImagem = false;
+                    });
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: fundoCartao,
+                      border: Border.all(color: corBorda),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        AnimatedScale(
+                          scale: mouseSobreImagem ? 1.05 : 1.0,
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOut,
+                          child: Image.network(
+                            widget.foto.imgSrc,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                child: Icon(
+                                  Icons.image_outlined,
+                                  color: textoSecundario,
+                                  size: 30,
+                                ),
+                              );
+                            },
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) {
+                                return child;
+                              }
 
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: verde,
-                          strokeWidth: 2,
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  color: verde,
+                                  strokeWidth: 2,
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                      );
-                    },
+
+                        AnimatedOpacity(
+                          opacity: mouseSobreImagem ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Container(
+                            color: Colors.black.withValues(alpha: 0.30),
+                            alignment: Alignment.center,
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: verde,
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                              child: const Icon(
+                                Icons.arrow_forward,
+                                color: Colors.black,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -91,7 +142,7 @@ class PhotoCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      foto.fonte.toUpperCase(),
+                      widget.foto.fonte.toUpperCase(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
@@ -102,7 +153,7 @@ class PhotoCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    foto.ano,
+                    widget.foto.ano,
                     style: GoogleFonts.inter(
                       color: textoSecundario,
                       fontSize: 7,
@@ -118,14 +169,14 @@ class PhotoCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      foto.titulo.isEmpty
+                      widget.foto.titulo.isEmpty
                           ? 'Imagem da NASA'
-                          : foto.titulo,
-                      maxLines: compact ? 1 : 2,
+                          : widget.foto.titulo,
+                      maxLines: widget.compact ? 1 : 2,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
                         color: textoPrincipal,
-                        fontSize: compact ? 9 : 12,
+                        fontSize: widget.compact ? 9 : 12,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -135,7 +186,7 @@ class PhotoCard extends StatelessWidget {
 
                   GestureDetector(
                     onTap: () {
-                      FavoritosService.alternar(foto);
+                      FavoritosService.alternar(widget.foto);
                     },
                     child: Padding(
                       padding: const EdgeInsets.only(top: 1),
@@ -144,7 +195,7 @@ class PhotoCard extends StatelessWidget {
                             ? Icons.favorite
                             : Icons.favorite_border,
                         color: curtida ? verde : iconeSemCurtida,
-                        size: compact ? 16 : 20,
+                        size: widget.compact ? 16 : 20,
                       ),
                     ),
                   ),

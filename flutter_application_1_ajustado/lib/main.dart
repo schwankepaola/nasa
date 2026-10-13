@@ -114,26 +114,29 @@ class _PrincipalScreenState extends State<PrincipalScreen> {
     });
   }
 
-  Future<void> abrirLink(String endereco) async {
-    final Uri url = Uri.parse(endereco);
+ 
 
-    try {
-      await launchUrl(
-        url,
-        webOnlyWindowName: '_blank',
-      );
-    } catch (e) {
-      debugPrint('Não foi possível abrir o link: $e');
-    }
-  }
+Future<void> abrirLink(String endereco) async {
+  final Uri url = Uri.parse(endereco);
 
-  Future<void> visitarNasa() async {
-    await abrirLink('https://www.nasa.gov/');
+  try {
+    await launchUrl(
+      url,
+      webOnlyWindowName: '_blank',
+    );
+  } catch (e) {
+    debugPrint('Erro ao abrir o link $endereco: $e');
   }
+}
 
-  Future<void> abrirApisNasa() async {
-    await abrirLink('https://api.nasa.gov/');
-  }
+Future<void> visitarNasa() async {
+  await abrirLink('https://www.nasa.gov/');
+}
+
+Future<void> abrirApisNasa() async {
+  await abrirLink('https://api.nasa.gov/');
+}
+
 
   @override
   Widget build(BuildContext context) {
