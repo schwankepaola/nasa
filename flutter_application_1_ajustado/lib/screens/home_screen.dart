@@ -22,68 +22,57 @@ class _HomeScreenState extends State<HomeScreen> {
   Color get fundo =>
       escuro ? const Color(0xFF08090B) : const Color(0xFFF7F9F5);
 
-  Color get fundoCartao => escuro ? const Color(0xFF101418) : Colors.white;
+  Color get fundoCartao => escuro ? const Color(0xFF14171C) : Colors.white;
 
   Color get linha =>
-      escuro ? const Color(0xFF202328) : const Color(0xFFD9DED5);
+      escuro ? const Color(0xFF30343A) : const Color(0xFFD9DED5);
 
   Color get textoPrincipal =>
-      escuro ? Colors.white : const Color(0xFF171A16);
+      escuro ? const Color(0xFFF2F2F2) : const Color(0xFF171A16);
 
   Color get textoSecundario =>
-      escuro ? Colors.white54 : const Color(0xFF60665D);
+      escuro ? const Color(0xFFADB2BC) : const Color(0xFF60665D);
 
   Color get textoFraco =>
-      escuro ? Colors.white38 : const Color(0xFF777D73);
+      escuro ? const Color(0xFF777F8C) : const Color(0xFF777D73);
 
   String _dataAtual() {
     final agora = DateTime.now();
 
     const meses = [
-      'JAN.',
-      'FEV.',
-      'MAR.',
-      'ABR.',
-      'MAI.',
-      'JUN.',
-      'JUL.',
-      'AGO.',
-      'SET.',
-      'OUT.',
-      'NOV.',
-      'DEZ.',
+      'JAN.', 'FEV.', 'MAR.', 'ABR.', 'MAI.', 'JUN.',
+      'JUL.', 'AGO.', 'SET.', 'OUT.', 'NOV.', 'DEZ.',
     ];
 
     return '${agora.day} DE ${meses[agora.month - 1]} DE ${agora.year}';
   }
 
-  Future<void> _abrirApisNasa() async {
-    final Uri url = Uri.parse('https://api.nasa.gov/');
-
+  Future<void> _abrirUrl(String endereco) async {
     try {
-      final bool abriu = await launchUrl(
-        url,
+      final uri = Uri.parse(endereco);
+      final abriu = await launchUrl(
+        uri,
         webOnlyWindowName: '_blank',
       );
 
       if (!abriu && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Não foi possível abrir o site da NASA API.'),
-          ),
+          const SnackBar(content: Text('Não foi possível abrir o endereço.')),
         );
       }
     } catch (e) {
-      debugPrint('Erro ao abrir NASA Open APIs: $e');
+      debugPrint('Erro ao abrir endereço: $e');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erro ao tentar abrir o site da NASA.'),
-          ),
+          const SnackBar(content: Text('Erro ao abrir o site.')),
         );
       }
     }
+  }
+
+  Future<void> _abrirApisNasa() async {
+    await _abrirUrl('https://api.nasa.gov/');
   }
 
   void _voltarAoTopo() {
@@ -106,341 +95,568 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Container(
       color: fundo,
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _topo(),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 42,
-                vertical: 45,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+      child: LayoutBuilder(
+        builder: (context, limites) {
+          final compacto = limites.maxWidth < 700;
+
+          return SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _topo(compacto),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: compacto ? 20 : 42,
+                    vertical: compacto ? 28 : 38,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 18,
-                        height: 1,
-                        color: verde,
+                      Row(
+                        children: [
+                          Container(width: 20, height: 1, color: verde),
+                          const SizedBox(width: 12),
+                          Text(
+                            'UM UNIVERSO PARA EXPLORAR',
+                            style: GoogleFonts.inter(
+                              color: escuro ? verde : const Color(0xFF536D00),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            '/ 001',
+                            style: GoogleFonts.inter(
+                              color: textoFraco,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 9),
+                      const SizedBox(height: 18),
                       Text(
-                        'SEU PORTAL PARA O INFINITO',
+                        'Uma janela para as maravilhas do cosmos. '
+                        'Explore imagens, histórias e descobertas '
+                        'diretamente do acervo da NASA.',
                         style: GoogleFonts.inter(
-                          color: escuro
-                              ? verde
-                              : const Color(0xFF536D00),
-                          fontSize: 8,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
+                          color: textoSecundario,
+                          fontSize: compacto ? 13 : 15,
+                          height: 1.8,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '/ 001',
-                        style: GoogleFonts.inter(
-                          color: textoFraco,
-                          fontSize: 8,
-                        ),
-                      ),
+                      const SizedBox(height: 35),
+                      _cardDestaque(),
+                      const SizedBox(height: 30),
+                      _navegacao(compacto),
+                      const SizedBox(height: 60),
+                      _secaoExploreInfinito(),
+                      const SizedBox(height: 55),
+                      Container(height: 1, color: linha),
+                      const SizedBox(height: 30),
+                      _rodape(),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  RichText(
-                    text: TextSpan(
-                      style: GoogleFonts.inter(
-                        color: textoPrincipal,
-                        fontSize: 48,
-                        height: 1.05,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: -2,
-                      ),
-                      children: [
-                        const TextSpan(text: 'O universo está\n'),
-                        TextSpan(
-                          text: 'mais perto',
-                          style: TextStyle(
-                            color: escuro
-                                ? verde
-                                : const Color(0xFF536D00),
-                          ),
-                        ),
-                        const TextSpan(text: ' do que você\nimagina.'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: 430,
-                    child: Text(
-                      'Uma janela para as maravilhas do cosmos. '
-                      'Explore imagens, histórias e descobertas '
-                      'diretamente do acervo da NASA.',
-                      style: GoogleFonts.inter(
-                        color: textoSecundario,
-                        fontSize: 11,
-                        height: 1.6,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 34),
-                  _cardDestaque(),
-                  const SizedBox(height: 30),
-                  _navegacao(),
-                  const SizedBox(height: 70),
-                  _secaoExploreInfinito(),
-                  const SizedBox(height: 55),
-                  Container(height: 1, color: linha),
-                  const SizedBox(height: 35),
-                  _rodape(),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _topo() {
-    return Container(
-      height: 64,
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: linha, width: 1),
+  Widget _topo(bool compacto) {
+    if (compacto) {
+      return Container(
+        height: 54,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        alignment: Alignment.centerLeft,
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: linha)),
         ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 30),
         child: Row(
           children: [
+            Icon(Icons.public, color: verde, size: 23),
+            const SizedBox(width: 10),
             Text(
-              'INÍCIO',
+              'órbita.',
               style: GoogleFonts.inter(
                 color: textoPrincipal,
-                fontSize: 8,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(width: 20),
-            Icon(
-              Icons.chevron_right,
-              size: 12,
-              color: textoFraco,
-            ),
-            const SizedBox(width: 20),
-            Text(
-              'EXPLORAR O UNIVERSO',
-              style: GoogleFonts.inter(
-                color: textoFraco,
-                fontSize: 8,
-                fontWeight: FontWeight.w500,
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -1,
               ),
             ),
             const Spacer(),
             Container(
-              width: 5,
-              height: 5,
+              width: 6,
+              height: 6,
               decoration: const BoxDecoration(
                 color: verde,
                 shape: BoxShape.circle,
               ),
             ),
-            const SizedBox(width: 7),
+            const SizedBox(width: 8),
             Text(
-              'DADOS DA NASA',
-              style: GoogleFonts.inter(
-                color: escuro
-                    ? verde
-                    : const Color(0xFF536D00),
-                fontSize: 8,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: 28),
-            Text(
-              _dataAtual(),
+              'NASA',
               style: GoogleFonts.inter(
                 color: textoSecundario,
-                fontSize: 8,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
         ),
+      );
+    }
+
+    return Container(
+      height: 64,
+      padding: const EdgeInsets.symmetric(horizontal: 30),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: linha)),
+      ),
+      child: Row(
+        children: [
+          Text(
+            'INÍCIO',
+            style: GoogleFonts.inter(
+              color: textoPrincipal,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 18),
+          Icon(Icons.chevron_right, size: 14, color: textoFraco),
+          const SizedBox(width: 18),
+          Text(
+            'EXPLORAR O UNIVERSO',
+            style: GoogleFonts.inter(
+              color: textoFraco,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const Spacer(),
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: verde,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'DADOS DA NASA',
+            style: GoogleFonts.inter(
+              color: escuro ? verde : const Color(0xFF536D00),
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: 25),
+          Text(
+            _dataAtual(),
+            style: GoogleFonts.inter(
+              color: textoSecundario,
+              fontSize: 10,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _cardDestaque() {
-    return Container(
-      height: 270,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: fundoCartao,
-        borderRadius: BorderRadius.circular(7),
-        border: Border.all(color: linha),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Row(
-        children: [
-          Expanded(
-            flex: 5,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.network(
-                  'https://images-assets.nasa.gov/image/PIA04227/PIA04227~orig.jpg',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF123B4A),
-                            Color(0xFF15233A),
-                            Color(0xFF07090D),
-                          ],
-                        ),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.public,
-                          color: Colors.white24,
-                          size: 50,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                Positioned(
-                  left: 15,
-                  top: 15,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(3),
-                      border: Border.all(color: Colors.white24),
-                    ),
-                    child: Text(
-                      '01 / EM DESTAQUE',
-                      style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 7,
-                        fontWeight: FontWeight.w600,
-                      ),
+    return LayoutBuilder(
+      builder: (context, limites) {
+        final compacto = limites.maxWidth < 760;
+
+        final imagem = Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.network(
+              'https://images-assets.nasa.gov/image/PIA04227/PIA04227~medium.jpg',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: const Color(0xFF102330),
+                  child: const Center(
+                    child: Icon(
+                      Icons.public,
+                      color: Colors.white54,
+                      size: 60,
                     ),
                   ),
-                ),
-                const Positioned(
-                  right: 16,
-                  top: 15,
-                  child: Icon(
-                    Icons.auto_awesome,
-                    color: Colors.white70,
-                    size: 15,
-                  ),
-                ),
-              ],
+                );
+              },
             ),
-          ),
-          Expanded(
-            flex: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+            Positioned(
+              left: 22,
+              top: 22,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 13,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  border: Border.all(color: Colors.white30),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Text(
+                  '01 / EM DESTAQUE',
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: .7,
+                  ),
+                ),
+              ),
+            ),
+            const Positioned(
+              right: 22,
+              top: 22,
+              child: Icon(
+                Icons.auto_awesome,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+            Positioned(
+              left: 22,
+              bottom: 20,
+              child: Text(
+                'NASA • ACERVO ASTRONÔMICO',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: .6,
+                ),
+              ),
+            ),
+          ],
+        );
+
+        final painel = Padding(
+          padding: EdgeInsets.all(compacto ? 22 : 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 5,
-                        height: 5,
-                        decoration: const BoxDecoration(
-                          color: verde,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 7),
-                      Expanded(
-                        child: Text(
-                          'DESTAQUE DO ACERVO',
-                          style: GoogleFonts.inter(
-                            color: escuro
-                                ? verde
-                                : const Color(0xFF536D00),
-                            fontSize: 7,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        'Nº 001 — 365',
-                        style: GoogleFonts.inter(
-                          color: textoFraco,
-                          fontSize: 7,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'UMA NOVA PERSPECTIVA A CADA DIA',
-                    style: GoogleFonts.inter(
-                      color: escuro
-                          ? verde
-                          : const Color(0xFF536D00),
-                      fontSize: 7,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: .8,
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: verde,
+                      shape: BoxShape.circle,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'O universo nunca deixa de\nsurpreender.',
-                    style: GoogleFonts.inter(
-                      color: textoPrincipal,
-                      fontSize: 25,
-                      height: 1.12,
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: -1,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'DESTAQUE DO ACERVO',
+                      style: GoogleFonts.inter(
+                        color: escuro ? verde : const Color(0xFF536D00),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 14),
                   Text(
-                    'Explore as maravilhas do espaço enquanto '
-                    'tentamos conectar ao acervo astronômico da NASA.',
+                    'Nº 001 — 365',
                     style: GoogleFonts.inter(
-                      color: textoSecundario,
+                      color: textoFraco,
                       fontSize: 9,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    'Imagem do dia • Descoberta em destaque',
-                    style: GoogleFonts.inter(
-                      color: textoSecundario,
-                      fontSize: 8,
                     ),
                   ),
                 ],
               ),
-            ),
+              SizedBox(height: compacto ? 28 : 55),
+              Text(
+                'UMA NOVA PERSPECTIVA A CADA DIA',
+                style: GoogleFonts.inter(
+                  color: escuro ? verde : const Color(0xFF536D00),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                'O cosmos tem uma história para contar.',
+                style: GoogleFonts.inter(
+                  color: textoPrincipal,
+                  fontSize: compacto ? 28 : 40,
+                  height: 1.12,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: -1.5,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                'Descubra imagens, histórias e fenômenos '
+                'astronômicos registrados pela NASA.',
+                style: GoogleFonts.inter(
+                  color: textoSecundario,
+                  fontSize: 13,
+                  height: 1.7,
+                ),
+              ),
+              const SizedBox(height: 15),
+              InkWell(
+                onTap: _abrirHistoria,
+                borderRadius: BorderRadius.circular(30),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Conhecer a história',
+                        style: GoogleFonts.inter(
+                          color: textoPrincipal,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: linha),
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward,
+                          color: escuro ? verde : const Color(0xFF536D00),
+                          size: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 25),
+              Divider(color: linha),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(Icons.calendar_today, color: textoSecundario, size: 16),
+                  const SizedBox(width: 12),
+                  Text(
+                    _dataAtual(),
+                    style: GoogleFonts.inter(
+                      color: textoSecundario,
+                      fontSize: 11,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    tooltip: 'Conhecer a história',
+                    onPressed: _abrirHistoria,
+                    icon: Icon(
+                      Icons.arrow_forward_ios,
+                      color: textoSecundario,
+                      size: 15,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+
+        return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: fundoCartao,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: linha),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: compacto
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: 300, child: imagem),
+                    painel,
+                  ],
+                )
+              : SizedBox(
+                  height: 570,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(flex: 11, child: imagem),
+                      Expanded(flex: 10, child: painel),
+                    ],
+                  ),
+                ),
+        );
+      },
+    );
+  }
+
+  void _abrirHistoria() {
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: fundoCartao,
+          insetPadding: const EdgeInsets.all(24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: linha),
+          ),
+          child: LayoutBuilder(
+            builder: (context, limites) {
+              final compacto = limites.maxWidth < 650;
+
+              final imagem = Image.network(
+                'https://images-assets.nasa.gov/image/PIA04227/PIA04227~medium.jpg',
+                width: double.infinity,
+                height: compacto ? 240 : 560,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: compacto ? 240 : 560,
+                    color: const Color(0xFF102330),
+                    child: const Center(
+                      child: Icon(
+                        Icons.public,
+                        color: Colors.white54,
+                        size: 60,
+                      ),
+                    ),
+                  );
+                },
+              );
+
+              final conteudo = Padding(
+                padding: const EdgeInsets.all(28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                        tooltip: 'Fechar',
+                        onPressed: () => Navigator.pop(dialogContext),
+                        icon: Icon(Icons.close, color: textoPrincipal),
+                      ),
+                    ),
+                    Text(
+                      'NASA / ACERVO ASTRONÔMICO',
+                      style: GoogleFonts.inter(
+                        color: verde,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      'O cosmos tem uma história para contar.',
+                      style: GoogleFonts.inter(
+                        color: textoPrincipal,
+                        fontSize: compacto ? 27 : 36,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Explore os mistérios do universo por meio de '
+                      'imagens astronômicas e descobertas registradas '
+                      'pela NASA. Cada imagem revela uma parte da '
+                      'história do espaço e nos convida a conhecer '
+                      'melhor os objetos e fenômenos cósmicos.',
+                      style: GoogleFonts.inter(
+                        color: textoSecundario,
+                        fontSize: 13,
+                        height: 1.8,
+                      ),
+                    ),
+                    const SizedBox(height: 26),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Conectaremos este botão à coleção de Salvos.',
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.favorite_border, size: 18),
+                          label: const Text('Salvar na coleção'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: textoPrincipal,
+                            side: BorderSide(color: linha),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 18,
+                            ),
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: _abrirApisNasa,
+                          icon: const Icon(Icons.open_in_new, size: 16),
+                          label: const Text('Ver NASA'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: textoPrincipal,
+                            side: BorderSide(color: linha),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 18,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+
+              return ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 1200,
+                  maxHeight: 720,
+                ),
+                child: SingleChildScrollView(
+                  child: compacto
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [imagem, conteudo],
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(flex: 1, child: imagem),
+                            Expanded(flex: 1, child: conteudo),
+                          ],
+                        ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -450,52 +666,66 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Row(
           children: [
-            Container(width: 18, height: 1, color: verde),
-            const SizedBox(width: 9),
+            Container(width: 20, height: 1, color: verde),
+            const SizedBox(width: 12),
             Text(
-              'EXPLORE O INFINITO',
+              'UM UNIVERSO PARA EXPLORAR',
               style: GoogleFonts.inter(
-                color: escuro
-                    ? verde
-                    : const Color(0xFF536D00),
-                fontSize: 8,
+                color: escuro ? verde : const Color(0xFF536D00),
+                fontSize: 10,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
+                letterSpacing: 1.5,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              '/ 002',
+              style: GoogleFonts.inter(
+                color: textoFraco,
+                fontSize: 10,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 14),
-        Text(
-          'Descubra o que existe além.',
-          style: GoogleFonts.inter(
-            color: textoPrincipal,
-            fontSize: 28,
-            fontWeight: FontWeight.w300,
-            letterSpacing: -0.8,
+        const SizedBox(height: 22),
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.inter(
+              color: textoPrincipal,
+              fontSize: 48,
+              height: 1.1,
+              fontWeight: FontWeight.w400,
+              letterSpacing: -2,
+            ),
+            children: [
+              const TextSpan(text: 'Explore o '),
+              TextSpan(
+                text: 'infinito.',
+                style: const TextStyle(color: verde),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         Text(
-          'Explore planetas, galáxias e imagens fascinantes do acervo espacial.',
+          'Viaje pelo acervo visual da NASA, uma descoberta de cada vez.',
           style: GoogleFonts.inter(
             color: textoSecundario,
-            fontSize: 11,
+            fontSize: 14,
             height: 1.6,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 30),
         LayoutBuilder(
-          builder: (context, constraints) {
-            final bool compacto = constraints.maxWidth < 650;
-
-            final double largura = compacto
-                ? constraints.maxWidth
-                : (constraints.maxWidth - 28) / 3;
+          builder: (context, limites) {
+            final compacto = limites.maxWidth < 650;
+            final largura = compacto
+                ? limites.maxWidth
+                : (limites.maxWidth - 28) / 3;
 
             return Wrap(
               spacing: 14,
-              runSpacing: 14,
+              runSpacing: 22,
               children: [
                 _cardExplore(
                   titulo: 'GALÁXIAS',
@@ -522,31 +752,19 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
         ),
-        const SizedBox(height: 22),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: OutlinedButton.icon(
-            onPressed: widget.onExplorar,
-            icon: const Icon(Icons.arrow_forward, size: 15),
-            label: const Text('EXPLORAR ACERVO'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: escuro
-                  ? verde
-                  : const Color(0xFF536D00),
-              side: BorderSide(
-                color: escuro
-                    ? verde
-                    : const Color(0xFF536D00),
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 18,
-                vertical: 16,
-              ),
-              textStyle: GoogleFonts.inter(
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.8,
-              ),
+        const SizedBox(height: 25),
+        OutlinedButton.icon(
+          onPressed: widget.onExplorar,
+          icon: const Icon(Icons.arrow_forward, size: 16),
+          label: const Text('EXPLORAR ACERVO'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: escuro ? verde : const Color(0xFF536D00),
+            side: BorderSide(
+              color: escuro ? verde : const Color(0xFF536D00),
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 18,
             ),
           ),
         ),
@@ -562,7 +780,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return SizedBox(
       width: largura,
-      height: 190,
+      height: 330,
       child: Material(
         color: fundoCartao,
         borderRadius: BorderRadius.circular(7),
@@ -577,21 +795,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFF123B4A),
-                          Color(0xFF15233A),
-                          Color(0xFF07090D),
-                        ],
-                      ),
-                    ),
+                    color: const Color(0xFF102330),
                     child: const Center(
                       child: Icon(
                         Icons.public,
-                        color: Colors.white24,
+                        color: Colors.white54,
                         size: 42,
                       ),
                     ),
@@ -613,7 +821,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Positioned(
                 left: 16,
                 right: 16,
-                bottom: 15,
+                bottom: 18,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -621,29 +829,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       titulo,
                       style: GoogleFonts.inter(
                         color: verde,
-                        fontSize: 9,
+                        fontSize: 10,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 1,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Text(
                       descricao,
                       style: GoogleFonts.inter(
                         color: Colors.white,
-                        fontSize: 11,
+                        fontSize: 13,
+                        height: 1.5,
                       ),
                     ),
+                    const SizedBox(height: 14),
+                    const Icon(
+                      Icons.arrow_outward,
+                      color: Colors.white70,
+                      size: 18,
+                    ),
                   ],
-                ),
-              ),
-              const Positioned(
-                top: 12,
-                right: 12,
-                child: Icon(
-                  Icons.arrow_outward,
-                  color: Colors.white70,
-                  size: 16,
                 ),
               ),
             ],
@@ -653,54 +859,44 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _navegacao() {
-    return Wrap(
-      spacing: 24,
-      runSpacing: 16,
-      children: [
-        _itemNavegacao('OLHE PARA CIMA', Icons.north),
-        GestureDetector(
-          onTap: widget.onExplorar,
-          child: _itemNavegacao(
-            'DESCUBRA O DESCONHECIDO',
-            Icons.auto_awesome,
-          ),
-        ),
-        _itemNavegacao(
-          'O UNIVERSO É DE TODOS',
-          Icons.auto_awesome,
-        ),
-        Text(
-          'OLHE PARA CIMA',
-          style: GoogleFonts.inter(
-            color: textoFraco,
-            fontSize: 7,
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _navegacao(bool compacto) {
+    final itens = [
+      'OLHE PARA CIMA',
+      'DESCUBRA O DESCONHECIDO',
+      'O UNIVERSO É DE TODOS',
+      'OLHE PARA CIMA',
+    ];
 
-  Widget _itemNavegacao(String texto, IconData icone) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Column(
       children: [
-        Text(
-          texto,
-          style: GoogleFonts.inter(
-            color: textoSecundario,
-            fontSize: 7,
-            fontWeight: FontWeight.w500,
-          ),
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          spacing: 22,
+          runSpacing: 18,
+          children: itens.map((texto) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  texto,
+                  style: GoogleFonts.inter(
+                    color: textoSecundario,
+                    fontSize: 10,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.auto_awesome,
+                  color: escuro ? verde : const Color(0xFF536D00),
+                  size: 15,
+                ),
+              ],
+            );
+          }).toList(),
         ),
-        const SizedBox(width: 8),
-        Icon(
-          icone,
-          color: escuro
-              ? verde
-              : const Color(0xFF536D00),
-          size: 12,
-        ),
+        const SizedBox(height: 35),
+        Container(height: 1, color: linha),
       ],
     );
   }
@@ -716,7 +912,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'Imagens e dados: ',
           style: GoogleFonts.inter(
             color: textoFraco,
-            fontSize: 9,
+            fontSize: 10,
           ),
         ),
         InkWell(
@@ -724,10 +920,8 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Text(
             'NASA Open APIs',
             style: GoogleFonts.inter(
-              color: escuro
-                  ? verde
-                  : const Color(0xFF536D00),
-              fontSize: 9,
+              color: escuro ? verde : const Color(0xFF536D00),
+              fontSize: 10,
               decoration: TextDecoration.underline,
             ),
           ),
@@ -736,7 +930,7 @@ class _HomeScreenState extends State<HomeScreen> {
           '.',
           style: GoogleFonts.inter(
             color: textoFraco,
-            fontSize: 9,
+            fontSize: 10,
           ),
         ),
       ],
@@ -745,8 +939,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _rodape() {
     return LayoutBuilder(
-      builder: (context, constraints) {
-        final bool compacto = constraints.maxWidth < 650;
+      builder: (context, limites) {
+        final compacto = limites.maxWidth < 650;
 
         if (compacto) {
           return Column(
@@ -756,8 +950,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 'órbita.',
                 style: GoogleFonts.inter(
                   color: textoPrincipal,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 23,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 12),
@@ -765,23 +959,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Uma forma de se perder e se encontrar no universo.',
                 style: GoogleFonts.inter(
                   color: textoFraco,
-                  fontSize: 9,
-                  height: 1.6,
+                  fontSize: 10,
+                  height: 1.7,
                 ),
               ),
+              const SizedBox(height: 8),
               _textoApisNasa(),
               const SizedBox(height: 12),
               TextButton(
                 onPressed: _voltarAoTopo,
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  alignment: Alignment.centerLeft,
-                ),
                 child: Text(
                   'VOLTAR AO TOPO ↑',
                   style: GoogleFonts.inter(
                     color: textoSecundario,
-                    fontSize: 9,
+                    fontSize: 10,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -794,52 +985,43 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'órbita.',
-                  style: GoogleFonts.inter(
-                    color: textoPrincipal,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
+              child: Text(
+                'órbita.',
+                style: GoogleFonts.inter(
+                  color: textoPrincipal,
+                  fontSize: 23,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
             Expanded(
               flex: 2,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     'Uma forma de se perder e se encontrar no universo.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       color: textoFraco,
-                      fontSize: 9,
-                      height: 1.6,
+                      fontSize: 10,
+                      height: 1.7,
                     ),
                   ),
+                  const SizedBox(height: 8),
                   _textoApisNasa(alinhamento: TextAlign.center),
                 ],
               ),
             ),
             Expanded(
-              flex: 1,
               child: Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: _voltarAoTopo,
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    alignment: Alignment.centerRight,
-                  ),
                   child: Text(
                     'VOLTAR AO TOPO ↑',
                     style: GoogleFonts.inter(
                       color: textoSecundario,
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
